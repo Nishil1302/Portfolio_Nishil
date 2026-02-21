@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — A Story Driven Experience</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Outfit:wght@200;400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#8b6914;--gold2:#b8860b;--night:#f5f0e8;--deep:#ece5d8;
+  --ink:#1a1208;--ink2:#4a3c20;--cream:#faf6ef;--card:rgba(255,251,242,.85);
+  --border:rgba(139,105,20,.18);--shadow:rgba(139,105,20,.12);
+}
+html,body{width:100%;height:100%;overflow-x:hidden}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--ink);cursor:none}
+
+/* CAR CURSOR */
+#cur{position:fixed;width:44px;height:22px;pointer-events:none;z-index:99999;transform:translate(-50%,-60%);transition:transform .12s ease}
+#cur svg{width:100%;height:100%;filter:drop-shadow(0 2px 6px rgba(139,105,20,.45))}
+#cur2{position:fixed;width:10px;height:10px;background:var(--gold2);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:all .18s ease;opacity:.55}
+
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at 50% 55%,#ede4d0 0%,#f5f0e8 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;transition:opacity .9s,visibility .9s}
+#loader.out{opacity:0;visibility:hidden}
+.bmw-wrap{width:500px;max-width:88vw;filter:drop-shadow(0 18px 55px rgba(139,105,20,.38));animation:hover 3s ease-in-out infinite}
+@keyframes hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.bmw-wrap svg{width:100%;height:auto;overflow:visible}
+.load-lbl{font-family:'Cormorant Garamond',serif;font-size:1rem;letter-spacing:.45em;color:var(--gold);text-transform:uppercase}
+.prog-wrap{width:360px;max-width:85vw;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.prog-bar{width:100%;height:4px;background:rgba(139,105,20,.15);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2),#c8a84b);border-radius:4px;box-shadow:0 0 12px rgba(184,134,11,.45);transition:width .2s ease}
+.prog-pct{font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:700;color:var(--gold2);line-height:1}
+#start-btn{padding:1.1rem 3.6rem;border:none;border-radius:100px;background:linear-gradient(135deg,var(--gold),var(--gold2));font-family:'Outfit',sans-serif;font-size:1rem;font-weight:600;letter-spacing:.2em;color:#faf6ef;text-transform:uppercase;cursor:pointer;box-shadow:0 0 40px rgba(139,105,20,.35);opacity:0;transform:translateY(14px) scale(.95);transition:opacity .5s,transform .5s,box-shadow .3s;pointer-events:none}
+#start-btn.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+#start-btn:hover{box-shadow:0 0 70px rgba(139,105,20,.6);transform:scale(1.04)}
+
+/* CLOUD CANVAS */
+#cloud-stage{position:fixed;inset:0;z-index:9998;pointer-events:none;display:none}
+#cloud-stage.active{display:block}
+
+/* MAIN */
+#main{opacity:0;transition:opacity .9s}
+#main.vis{opacity:1}
+#world{position:fixed;inset:0;z-index:0}
+.overlay{position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(245,240,232,.55) 0%,rgba(245,240,232,.15) 40%,rgba(245,240,232,.62) 100%)}
+
+section{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0 6%}
+
+/* NAME */
+#s-name{text-align:center}
+.kicker{font-size:.78rem;letter-spacing:.5em;color:var(--gold);text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:up .8s .2s forwards}
+.big-name{font-family:'Cormorant Garamond',serif;font-size:clamp(4.5rem,13vw,10.5rem);font-weight:700;line-height:.95;background:linear-gradient(150deg,var(--ink) 10%,var(--gold2) 55%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em;opacity:0;animation:up .9s .4s forwards}
+.role{font-size:clamp(.9rem,2vw,1.4rem);font-weight:200;letter-spacing:.35em;color:var(--ink2);margin-top:1.2rem;text-transform:uppercase;opacity:0;animation:up .8s .7s forwards}
+@keyframes up{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}}
+.cue{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.6rem;opacity:0;animation:up .7s 1.3s forwards}
+.cue span{font-size:.7rem;letter-spacing:.4em;color:var(--ink2);text-transform:uppercase;opacity:.6}
+.cue-line{width:1px;height:56px;background:linear-gradient(180deg,var(--gold),transparent)}
+.cue-line::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin-left:-2px;animation:drip 2s ease-in-out infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(50px);opacity:0}}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(55px);transition:opacity 1.1s cubic-bezier(.16,1,.3,1),transform 1.1s cubic-bezier(.16,1,.3,1)}
+.rv.on{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.15s}.d2{transition-delay:.3s}.d3{transition-delay:.45s}
+
+/* WELCOME */
+#s-wel{flex-direction:column;text-align:center;gap:2rem;background:linear-gradient(180deg,rgba(245,240,232,0),rgba(245,240,232,.55))}
+.welh{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,9vw,7rem);font-weight:600;line-height:1.08;max-width:860px;margin:0 auto;color:var(--ink)}
+.welh em{color:var(--gold2);font-style:normal}
+.welp{max-width:580px;margin:0 auto;font-size:clamp(.95rem,1.4vw,1.15rem);font-weight:300;line-height:1.9;color:var(--ink2)}
+
+/* SECTION headings */
+.ch-lbl{font-size:.72rem;letter-spacing:.55em;color:var(--gold);text-transform:uppercase;margin-bottom:.9rem;display:block}
+.sec-h{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,6vw,5rem);font-weight:700;line-height:1.1;color:var(--ink)}
+.sec-h em{color:var(--gold2);font-style:normal}
+
+/* ABOUT */
+#s-about .grid{display:grid;grid-template-columns:1fr 1fr;gap:5.5rem;align-items:center;max-width:1200px;width:100%}
+.about-p{font-size:1.03rem;font-weight:300;line-height:1.95;color:var(--ink2);margin-bottom:1.1rem}
+.stats{display:flex;gap:2.8rem;margin-top:2.4rem}
+.st .n{font-family:'Cormorant Garamond',serif;font-size:3.2rem;font-weight:700;color:var(--gold);line-height:1}
+.st .l{font-size:.72rem;letter-spacing:.3em;color:var(--ink2);text-transform:uppercase;margin-top:.25rem;opacity:.65}
+#about-c{width:100%;height:400px;border-radius:14px;border:1px solid var(--border);background:var(--card);box-shadow:0 8px 40px var(--shadow)}
+
+/* PROJECTS */
+#s-proj{flex-direction:column;gap:3.5rem;max-width:1280px;margin:0 auto}
+.phead{text-align:center}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.8rem;width:100%}
+.pc-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:transform .4s,border-color .4s,box-shadow .4s;cursor:pointer;box-shadow:0 4px 20px var(--shadow)}
+.pc-card:hover{transform:translateY(-11px);border-color:var(--gold);box-shadow:0 24px 60px rgba(139,105,20,.2)}
+.pc-vis{height:210px;overflow:hidden;position:relative}
+.pc-vis canvas{width:100%;height:100%}
+.pc-body{padding:1.5rem 1.7rem 1.9rem}
+.pc-cat{font-size:.7rem;letter-spacing:.38em;color:var(--gold);text-transform:uppercase;margin-bottom:.5rem}
+.pc-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;margin-bottom:.7rem;color:var(--ink)}
+.pc-desc{font-size:.9rem;font-weight:300;color:var(--ink2);line-height:1.75;margin-bottom:1.1rem}
+.pc-tags{display:flex;flex-wrap:wrap;gap:.45rem}
+.pc-tag{padding:.28rem .85rem;border:1px solid var(--border);border-radius:100px;font-size:.75rem;color:var(--ink2)}
+
+/* SKILLS */
+#s-sk{flex-direction:column;gap:3.5rem;max-width:1180px;margin:0 auto}
+.skgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem;width:100%}
+.sk{padding:2.2rem 1.8rem;border-radius:14px;background:var(--card);border:1px solid var(--border);transition:all .4s;box-shadow:0 4px 20px var(--shadow)}
+.sk:hover{transform:translateY(-8px);border-color:var(--gold);box-shadow:0 20px 50px rgba(139,105,20,.18)}
+.sk-ic{font-size:2.4rem;margin-bottom:1rem}
+.sk-nm{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;margin-bottom:.5rem;color:var(--ink)}
+.sk-ds{font-size:.88rem;font-weight:300;color:var(--ink2);line-height:1.7}
+
+/* RESUME SECTION */
+#s-resume{flex-direction:column;gap:3rem;max-width:900px;margin:0 auto}
+.resume-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:3rem;width:100%;box-shadow:0 8px 40px var(--shadow)}
+.resume-block{margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:1px solid var(--border)}
+.resume-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.res-section-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold);margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem}
+.res-section-title::before{content:'';display:block;width:28px;height:2px;background:var(--gold)}
+.res-item{margin-bottom:1.4rem}
+.res-item:last-child{margin-bottom:0}
+.res-item-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--ink);margin-bottom:.2rem}
+.res-item-sub{font-size:.85rem;color:var(--gold);font-weight:600;margin-bottom:.4rem;letter-spacing:.05em}
+.res-item-desc{font-size:.9rem;color:var(--ink2);line-height:1.7;font-weight:300}
+.res-skills-row{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.8rem}
+.res-skill-tag{padding:.35rem 1rem;background:rgba(139,105,20,.1);border:1px solid rgba(139,105,20,.25);border-radius:100px;font-size:.8rem;color:var(--gold);font-weight:600}
+.dl-btn{display:inline-flex;align-items:center;gap:.8rem;padding:1.1rem 2.8rem;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:100px;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:600;color:#faf6ef;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;text-decoration:none;box-shadow:0 8px 30px rgba(139,105,20,.35);transition:all .3s}
+.dl-btn:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(139,105,20,.5)}
+.dl-btn svg{width:18px;height:18px}
+
+/* CONTACT */
+#s-con{flex-direction:column;gap:3rem;text-align:center;max-width:860px;margin:0 auto}
+#s-con h2{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6rem);font-weight:700;line-height:1.05;color:var(--ink)}
+#s-con p{font-size:1.08rem;font-weight:300;color:var(--ink2);line-height:1.9;max-width:580px}
+.crow{display:flex;gap:1.3rem;justify-content:center;flex-wrap:wrap}
+.cbox{padding:1.7rem 2.3rem;border-radius:12px;background:var(--card);border:1px solid var(--border);min-width:185px;transition:all .35s;box-shadow:0 4px 20px var(--shadow)}
+.cbox:hover{border-color:var(--gold);box-shadow:0 16px 40px rgba(139,105,20,.2);transform:translateY(-5px)}
+.c-ic{font-size:1.8rem;margin-bottom:.5rem}
+.c-lb{font-size:.68rem;letter-spacing:.32em;color:var(--gold);text-transform:uppercase;margin-bottom:.25rem}
+.c-vl{font-size:.98rem;font-weight:500;color:var(--ink)}
+.socs{display:flex;gap:.9rem;justify-content:center}
+.sl{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);color:var(--ink);text-decoration:none;font-size:1.05rem;transition:all .3s;background:var(--card);box-shadow:0 2px 12px var(--shadow)}
+.sl:hover{background:var(--gold);color:#faf6ef;border-color:var(--gold);transform:translateY(-4px) rotate(8deg);box-shadow:0 8px 24px rgba(139,105,20,.35)}
+
+/* ROAD NAV */
+#road-nav{position:fixed;bottom:0;left:0;width:100%;z-index:50;pointer-events:none}
+#road-c{width:100%;display:block}
+
+footer{position:relative;z-index:2;padding:2rem 2rem 120px;text-align:center;font-size:.78rem;letter-spacing:.22em;color:var(--ink2);text-transform:uppercase;border-top:1px solid var(--border);opacity:.7}
+.footer-pdf{display:inline-flex;align-items:center;gap:.6rem;margin-top:1.2rem;padding:.7rem 2rem;background:var(--card);border:1px solid var(--border);border-radius:100px;font-size:.78rem;letter-spacing:.18em;color:var(--gold);text-decoration:none;font-weight:600;transition:all .3s;box-shadow:0 2px 12px var(--shadow)}
+.footer-pdf:hover{background:var(--gold);color:#faf6ef;border-color:var(--gold);transform:translateY(-2px)}
+
+@media(max-width:900px){#s-about .grid{grid-template-columns:1fr;gap:3rem}.skgrid{grid-template-columns:1fr 1fr}.bmw-wrap{width:88vw}}
+@media(max-width:600px){.skgrid,.pgrid{grid-template-columns:1fr}.crow{flex-direction:column;align-items:center}}
+</style>
+</head>
+<body>
+<div id="cur">
+  <svg viewBox="0 0 44 22" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8b6914"/><stop offset="100%" stop-color="#c8a84b"/></linearGradient></defs>
+    <path d="M4,14 L8,10 L12,8 L18,7 L26,7 L32,8 L38,11 L40,14 L40,17 L4,17 Z" fill="url(#cg)" stroke="#8b6914" stroke-width=".8"/>
+    <path d="M12,10 L14,7 L18,6 L26,6 L30,7 L32,10 Z" fill="rgba(200,168,75,.35)" stroke="#c8a84b" stroke-width=".6"/>
+    <circle cx="11" cy="17" r="4" fill="#1a1208" stroke="#8b6914" stroke-width="1"/>
+    <circle cx="11" cy="17" r="2.2" fill="url(#cg)"/>
+    <circle cx="33" cy="17" r="4" fill="#1a1208" stroke="#8b6914" stroke-width="1"/>
+    <circle cx="33" cy="17" r="2.2" fill="url(#cg)"/>
+    <rect x="37" y="12" width="5" height="3" rx="1.5" fill="rgba(255,240,140,.9)"/>
+    <rect x="2" y="13" width="4" height="2.5" rx="1" fill="rgba(220,60,20,.8)"/>
+    <line x1="22" y1="7" x2="22" y2="7" stroke="#8b6914" stroke-width=".5"/>
+  </svg>
+</div>
+<div id="cur2"></div>
+
+<!-- ═══ LOADER ═══ -->
+<div id="loader">
+  <div class="bmw-wrap">
+    <svg viewBox="0 0 600 230" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2e2e48"/><stop offset="50%" stop-color="#4a4a6e"/><stop offset="100%" stop-color="#1c1c2c"/></linearGradient>
+        <linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#c9a96e"/><stop offset="50%" stop-color="#f0d080"/><stop offset="100%" stop-color="#c9a96e"/></linearGradient>
+        <linearGradient id="wg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(130,180,255,.68)"/><stop offset="100%" stop-color="rgba(50,90,180,.32)"/></linearGradient>
+        <radialGradient id="rg1" cx="40%" cy="35%" r="60%"><stop offset="0%" stop-color="#ccc"/><stop offset="55%" stop-color="#888"/><stop offset="100%" stop-color="#2a2a2a"/></radialGradient>
+        <filter id="gl"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="gl2"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <ellipse cx="300" cy="200" rx="225" ry="16" fill="rgba(0,0,0,.6)"/>
+      <path d="M78,158 L70,140 L95,108 L130,88 L172,74 L202,68 L272,66 L342,66 L392,68 L432,79 L482,100 L512,122 L527,142 L530,160 L524,164 L76,164 Z" fill="url(#bg1)" stroke="rgba(201,169,110,.38)" stroke-width="1.4"/>
+      <path d="M168,102 L184,76 L216,60 L256,54 L312,53 L356,55 L392,64 L418,79 L428,102 Z" fill="#20203a" stroke="rgba(201,169,110,.22)" stroke-width=".9"/>
+      <path d="M420,104 L483,100 L512,118 L502,124 L452,112 L420,110 Z" fill="#32324c" stroke="rgba(255,255,255,.07)" stroke-width=".5"/>
+      <line x1="130" y1="90" x2="420" y2="90" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>
+      <path d="M68,140 L66,128 L80,114 L102,108 L134,106 L138,114 L118,124 L90,132 L76,144 Z" fill="#1a1a2c" stroke="rgba(201,169,110,.3)" stroke-width="1"/>
+      <path d="M512,128 L527,142 L530,160 L522,166 L506,164 L502,152 L507,136 Z" fill="#1a1a2c" stroke="rgba(201,169,110,.24)" stroke-width=".8"/>
+      <path d="M185,100 L198,72 L250,57 L312,55 L357,57 L388,72 L402,100 Z" fill="url(#wg1)" stroke="rgba(140,190,255,.4)" stroke-width="1"/>
+      <path d="M198,96 L208,70 L242,60 L250,90 Z" fill="rgba(255,255,255,.1)"/>
+      <path d="M348,60 L378,76 L370,98 L346,96 Z" fill="rgba(255,255,255,.06)"/>
+      <path d="M168,102 L180,78 L216,62 L242,60 L236,76 L212,98 L190,102 Z" fill="url(#wg1)" stroke="rgba(140,190,255,.28)" stroke-width=".8"/>
+      <path d="M184,100 L194,72 L204,70 L194,100 Z" fill="#16162a"/>
+      <path d="M296,55 L301,55 L300,102 L295,102 Z" fill="#16162a"/>
+      <path d="M388,72 L398,70 L416,84 L410,102 L402,102 L390,78 Z" fill="#16162a"/>
+      <path d="M173,97 L157,90 L152,100 L166,107 Z" fill="#28283e" stroke="rgba(201,169,110,.3)" stroke-width=".7"/>
+      <path d="M418,97 L432,88 L437,98 L424,106 Z" fill="#28283e" stroke="rgba(201,169,110,.3)" stroke-width=".7"/>
+      <rect x="240" y="124" width="26" height="6" rx="3" fill="#111" stroke="rgba(201,169,110,.4)" stroke-width=".8"/>
+      <rect x="340" y="124" width="26" height="6" rx="3" fill="#111" stroke="rgba(201,169,110,.4)" stroke-width=".8"/>
+      <path d="M88,115 Q92,108 110,108 L111,126 Q92,128 88,122 Z" fill="#0a0a14" stroke="url(#gg)" stroke-width="1.8"/>
+      <path d="M114,108 Q130,107 134,108 L132,126 Q116,128 113,126 Z" fill="#0a0a14" stroke="url(#gg)" stroke-width="1.8"/>
+      <path d="M86,114 Q90,105 136,106 L134,130 Q88,130 86,122 Z" fill="none" stroke="url(#gg)" stroke-width="1.2"/>
+      <ellipse cx="100" cy="144" rx="10" ry="6" fill="#0a0a14" stroke="rgba(201,169,110,.3)" stroke-width=".8"/>
+      <ellipse cx="130" cy="144" rx="10" ry="6" fill="#0a0a14" stroke="rgba(201,169,110,.3)" stroke-width=".8"/>
+      <g filter="url(#gl2)">
+        <path d="M76,116 Q87,107 110,106 L114,110 Q94,111 85,120 Z" fill="rgba(210,225,255,.92)" stroke="rgba(180,205,255,.55)" stroke-width=".6"/>
+        <path d="M84,106 Q118,102 125,107 Q114,105 84,112 Z" fill="rgba(255,255,210,.98)"/>
+        <circle cx="96" cy="113" r="5.5" fill="rgba(220,232,255,.35)"/>
+        <circle cx="109" cy="111" r="4" fill="rgba(255,255,200,.3)"/>
+      </g>
+      <g filter="url(#gl)">
+        <path d="M519,133 L526,136 L527,153 L521,157 L515,152 L515,140 Z" fill="rgba(255,55,18,.9)" stroke="rgba(255,100,55,.45)" stroke-width=".5"/>
+        <path d="M521,135 L525,138 L525,152 L522,153" stroke="rgba(255,110,70,.75)" stroke-width="1.5" fill="none"/>
+      </g>
+      <circle cx="190" cy="132" r="12.5" fill="white" stroke="rgba(201,169,110,.55)" stroke-width="1.2"/>
+      <circle cx="190" cy="132" r="11.5" fill="#0e49b5"/>
+      <path d="M178,132 A11.5,11.5,0,0,1,190,120.5 L190,132 Z" fill="white"/>
+      <path d="M190,132 A11.5,11.5,0,0,1,201.5,132 L190,132 Z" fill="white"/>
+      <circle cx="190" cy="132" r="3.5" fill="none" stroke="rgba(201,169,110,.55)" stroke-width=".8"/>
+      <ellipse cx="496" cy="163" rx="7.5" ry="4.5" fill="#111" stroke="rgba(201,169,110,.55)" stroke-width="1.3"/>
+      <ellipse cx="512" cy="163" rx="7.5" ry="4.5" fill="#111" stroke="rgba(201,169,110,.55)" stroke-width="1.3"/>
+      <ellipse cx="496" cy="163" rx="5" ry="2.8" fill="rgba(255,110,18,.18)"/>
+      <ellipse cx="512" cy="163" rx="5" ry="2.8" fill="rgba(255,110,18,.18)"/>
+      <circle cx="154" cy="174" r="33" fill="#0c0c18" stroke="rgba(201,169,110,.38)" stroke-width="1.6"/>
+      <circle cx="154" cy="174" r="30" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="4"/>
+      <circle cx="154" cy="174" r="22" fill="url(#rg1)"/>
+      <g stroke="#aaa" stroke-width="2.8" opacity=".82" stroke-linecap="round">
+        <line x1="154" y1="155" x2="154" y2="193"/><line x1="135" y1="174" x2="173" y2="174"/>
+        <line x1="141" y1="161" x2="167" y2="187"/><line x1="167" y1="161" x2="141" y2="187"/>
+        <line x1="137" y1="167" x2="171" y2="181"/><line x1="137" y1="181" x2="171" y2="167"/>
+      </g>
+      <circle cx="154" cy="174" r="7" fill="#1c1c1c" stroke="url(#gg)" stroke-width="1.6"/>
+      <circle cx="154" cy="174" r="2.8" fill="#777"/>
+      <circle cx="154" cy="174" r="15" fill="none" stroke="rgba(255,90,18,.12)" stroke-width="5"/>
+      <circle cx="450" cy="174" r="33" fill="#0c0c18" stroke="rgba(201,169,110,.38)" stroke-width="1.6"/>
+      <circle cx="450" cy="174" r="30" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="4"/>
+      <circle cx="450" cy="174" r="22" fill="url(#rg1)"/>
+      <g stroke="#aaa" stroke-width="2.8" opacity=".82" stroke-linecap="round">
+        <line x1="450" y1="155" x2="450" y2="193"/><line x1="431" y1="174" x2="469" y2="174"/>
+        <line x1="437" y1="161" x2="463" y2="187"/><line x1="463" y1="161" x2="437" y2="187"/>
+        <line x1="433" y1="167" x2="467" y2="181"/><line x1="433" y1="181" x2="467" y2="167"/>
+      </g>
+      <circle cx="450" cy="174" r="7" fill="#1c1c1c" stroke="url(#gg)" stroke-width="1.6"/>
+      <circle cx="450" cy="174" r="2.8" fill="#777"/>
+      <circle cx="450" cy="174" r="15" fill="none" stroke="rgba(255,90,18,.12)" stroke-width="5"/>
+      <ellipse cx="46" cy="110" rx="18" ry="7" fill="rgba(255,255,200,0)" opacity="0">
+        <animate attributeName="rx" values="12;38;12" dur="2.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".22;0;.22" dur="2.4s" repeatCount="indefinite"/>
+      </ellipse>
+    </svg>
+  </div>
+  <p class="load-lbl">Preparing your experience</p>
+  <div class="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="pf"></div></div>
+    <div class="prog-pct" id="pp">0%</div>
+  </div>
+  <button id="start-btn">Begin the Journey</button>
+</div>
+
+<!-- ═══ CLOUDS ═══ -->
+<canvas id="cloud-stage"></canvas>
+
+<!-- ═══ MAIN ═══ -->
+<div id="main">
+  <canvas id="world"></canvas>
+  <div class="overlay"></div>
+
+  <section id="s-name">
+    <div>
+      <p class="kicker">Creative Portfolio · 2025</p>
+      <h1 class="big-name">NISHIL<br>PANCHAL</h1>
+      <p class="role">Developer &nbsp;·&nbsp; Builder &nbsp;·&nbsp; Problem Solver</p>
+    </div>
+    <div class="cue"><span>Scroll to Explore</span><div class="cue-line"></div></div>
+  </section>
+
+  <section id="s-wel">
+    <span class="welh rv" style="font-size:.78rem;letter-spacing:.5em;color:var(--gold);text-transform:uppercase;font-family:'Outfit',sans-serif">Chapter One</span>
+    <h2 class="welh rv d1">Welcome to<br>My <em>World</em></h2>
+    <p class="welp rv d2">This is more than a portfolio — it is a window into my journey as a Computer Science student driven by curiosity, creativity, and the desire to build meaningful digital solutions. Every scroll unveils a new chapter of my story.</p>
+  </section>
+
+  <section id="s-about">
+    <div class="grid">
+      <div>
+        <span class="ch-lbl rv">Chapter Two · About</span>
+        <h2 class="sec-h rv d1">Building<br><em>Real Solutions</em></h2>
+        <p class="about-p rv d2">I am Nishil Panchal, a Computer Science & Engineering student at Pandit Deendayal Energy University, Ahmedabad, graduating in 2027. I am passionate about using technology to solve real-world problems — turning ideas into functional, impactful applications.</p>
+        <p class="about-p rv d2">From full-stack web development to Android applications, I thrive at the intersection of engineering and design. I believe great software does not just work — it connects, empowers, and uplifts people.</p>
+        <div class="stats rv d3">
+          <div class="st"><div class="n">7.15</div><div class="l">CGPA</div></div>
+          <div class="st"><div class="n">2027</div><div class="l">Passout</div></div>
+          <div class="st"><div class="n">CSE</div><div class="l">Branch</div></div>
+        </div>
+      </div>
+      <div class="rv d1"><canvas id="about-c"></canvas></div>
+    </div>
+  </section>
+
+  <section id="s-proj">
+    <div class="phead"><span class="ch-lbl rv">Chapter Three · Work</span><h2 class="sec-h rv d1">Featured <em>Projects</em></h2></div>
+    <div class="pgrid">
+      <div class="pc-card rv">
+        <div class="pc-vis"><canvas class="pcanv" data-t="nebula"></canvas></div>
+        <div class="pc-body"><div class="pc-cat">Web Application</div><div class="pc-title">CareerConnect</div><p class="pc-desc">A full-stack job portal platform designed to bridge the gap between job seekers and employers. Users can discover opportunities, apply seamlessly, and manage their career journey — all in one place.</p><div class="pc-tags"><span class="pc-tag">React</span><span class="pc-tag">PostgreSQL</span><span class="pc-tag">Node.js</span></div></div>
+      </div>
+      <div class="pc-card rv d1">
+        <div class="pc-vis"><canvas class="pcanv" data-t="orbit"></canvas></div>
+        <div class="pc-body"><div class="pc-cat">Mobile Development</div><div class="pc-title">Android App</div><p class="pc-desc">A native Android application built with Java and Android Studio, focused on delivering a smooth, intuitive mobile experience with clean architecture and thoughtful UX design.</p><div class="pc-tags"><span class="pc-tag">Android Studio</span><span class="pc-tag">Java</span><span class="pc-tag">XML</span></div></div>
+      </div>
+      <div class="pc-card rv d2">
+        <div class="pc-vis"><canvas class="pcanv" data-t="flow"></canvas></div>
+        <div class="pc-body"><div class="pc-cat">Full Stack</div><div class="pc-title">Database-Driven Web App</div><p class="pc-desc">A data-backed web application leveraging React on the frontend and PostgreSQL on the backend, built with performance, scalability, and clean RESTful API design in mind.</p><div class="pc-tags"><span class="pc-tag">React</span><span class="pc-tag">PostgreSQL</span><span class="pc-tag">REST API</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-sk">
+    <div class="phead"><span class="ch-lbl rv">Chapter Four · Craft</span><h2 class="sec-h rv d1">What I <em>Know</em></h2></div>
+    <div class="skgrid">
+      <div class="sk rv"><div class="sk-ic">⚛️</div><div class="sk-nm">React</div><p class="sk-ds">Building fast, responsive, and component-driven web interfaces with modern React and hooks.</p></div>
+      <div class="sk rv d1"><div class="sk-ic">🗄️</div><div class="sk-nm">PostgreSQL</div><p class="sk-ds">Designing and querying relational databases for scalable, data-driven applications.</p></div>
+      <div class="sk rv d2"><div class="sk-ic">📱</div><div class="sk-nm">Android Dev</div><p class="sk-ds">Native Android applications using Java and Android Studio with clean, intuitive UX.</p></div>
+      <div class="sk rv d3"><div class="sk-ic">☕</div><div class="sk-nm">Java</div><p class="sk-ds">Object-oriented programming with Java — from core fundamentals to Android development.</p></div>
+      <div class="sk rv d1"><div class="sk-ic">🌐</div><div class="sk-nm">Web Development</div><p class="sk-ds">Full-stack web development — from responsive frontends to robust backend APIs.</p></div>
+      <div class="sk rv d2"><div class="sk-ic">💡</div><div class="sk-nm">Problem Solving</div><p class="sk-ds">Approaching complex challenges with analytical thinking, creativity, and a builder's mindset.</p></div>
+    </div>
+  </section>
+
+  <!-- ── SECTION: RESUME ── -->
+  <section id="s-resume">
+    <div style="width:100%">
+      <div class="phead">
+        <span class="ch-lbl rv">Chapter Five · Resume</span>
+        <h2 class="sec-h rv d1">My <em>Journey</em></h2>
+      </div>
+      <div class="resume-card rv d2" id="resume-card">
+
+        <!-- Header -->
+        <div style="text-align:center;margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--border)">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;color:var(--ink)" id="res-name">Nishil Panchal</div>
+          <div style="font-size:.9rem;color:var(--ink2);margin-top:.4rem;letter-spacing:.1em" id="res-role">Computer Science & Engineering Student | Full-Stack Developer | Android Developer</div>
+          <div style="font-size:.82rem;color:var(--gold);margin-top:.5rem;letter-spacing:.05em" id="res-contact">📍 Ahmedabad, Gujarat, India &nbsp;·&nbsp; ✉️ nishilpanchal13@gmail.com &nbsp;·&nbsp; 📞 +91 88494 86159 &nbsp;·&nbsp; 🔗 linkedin.com/in/nishil-panchal-987787320 &nbsp;·&nbsp; 💻 github.com/Nishil1302</div>
+        </div>
+
+        <!-- Education -->
+        <div class="resume-block">
+          <div class="res-section-title">Education</div>
+          <div class="res-item">
+            <div class="res-item-title" id="edu1-title">B.Tech in Computer Science & Engineering</div>
+            <div class="res-item-sub" id="edu1-college">Pandit Deendayal Energy University, Ahmedabad &nbsp;·&nbsp; 2023 – 2027</div>
+            <div class="res-item-desc" id="edu1-desc">Currently pursuing a Bachelor of Technology in Computer Science & Engineering with a CGPA of 7.15/10. Gaining strong foundations in data structures, algorithms, software engineering, database management, and mobile application development.</div>
+          </div>
+        </div>
+
+        <!-- Projects -->
+        <div class="resume-block">
+          <div class="res-section-title">Projects</div>
+          <div class="res-item">
+            <div class="res-item-title" id="exp1-title">CareerConnect — Job Portal Web Application</div>
+            <div class="res-item-sub" id="exp1-company">Personal Project &nbsp;·&nbsp; 2024</div>
+            <div class="res-item-desc" id="exp1-desc">Developed a full-stack job portal platform to help users discover and apply for job opportunities with ease. Built a dynamic frontend using React and a reliable backend powered by PostgreSQL, enabling seamless data management, user authentication, and job listing features. The platform bridges the gap between job seekers and employers in one unified experience.</div>
+          </div>
+          <div class="res-item">
+            <div class="res-item-title" id="exp2-title">Android Mobile Application</div>
+            <div class="res-item-sub" id="exp2-company">Academic Project &nbsp;·&nbsp; 2024</div>
+            <div class="res-item-desc" id="exp2-desc">Designed and developed a native Android application using Java and Android Studio. Focused on delivering a clean, user-friendly experience with efficient activity management, data persistence, and smooth navigation across multiple screens.</div>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="resume-block">
+          <div class="res-section-title">Skills & Technologies</div>
+          <div class="res-skills-row" id="skills-row">
+            <span class="res-skill-tag">React.js</span>
+            <span class="res-skill-tag">JavaScript</span>
+            <span class="res-skill-tag">Java</span>
+            <span class="res-skill-tag">PostgreSQL</span>
+            <span class="res-skill-tag">Android Studio</span>
+            <span class="res-skill-tag">HTML & CSS</span>
+            <span class="res-skill-tag">Node.js</span>
+            <span class="res-skill-tag">REST APIs</span>
+            <span class="res-skill-tag">Git & GitHub</span>
+            <span class="res-skill-tag">SQL</span>
+            <span class="res-skill-tag">Data Structures</span>
+            <span class="res-skill-tag">OOP</span>
+          </div>
+        </div>
+
+        <!-- Objective -->
+        <div class="resume-block" style="margin-bottom:0;padding-bottom:0;border-bottom:none">
+          <div class="res-section-title">Career Objective</div>
+          <div class="res-item">
+            <div class="res-item-title" id="aw1">Fresher seeking impactful opportunities</div>
+            <div class="res-item-desc" id="aw1d">As a driven Computer Science student, I am eager to apply my skills in full-stack web development and Android application development in a professional environment. I am passionate about building technology that solves real problems and creates genuine value for users. Open to internships, part-time roles, and collaborative projects.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="text-align:center;margin-top:2.5rem" class="rv d3">
+        <button class="dl-btn" onclick="downloadResumePDF()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>
+          Download Resume PDF
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONTACT ── -->
+  <section id="s-con">
+    <span class="ch-lbl rv">Final Chapter · Connect</span>
+    <h2 class="rv d1">Let's Build<br>Something <em style="color:var(--gold2);font-style:normal">Together</em></h2>
+    <p class="rv d2">Whether you have an exciting project, an internship opportunity, or simply want to connect — I would love to hear from you. Let's create something meaningful.</p>
+    <div class="crow rv d2">
+      <div class="cbox"><div class="c-ic">✉️</div><div class="c-lb">Email</div><div class="c-vl">nishilpanchal13@gmail.com</div></div>
+      <div class="cbox"><div class="c-ic">📞</div><div class="c-lb">Phone</div><div class="c-vl">+91 88494 86159</div></div>
+      <div class="cbox"><div class="c-ic">📍</div><div class="c-lb">Location</div><div class="c-vl">Ahmedabad, Gujarat</div></div>
+    </div>
+    <div class="socs rv d3">
+      <a href="https://www.linkedin.com/in/nishil-panchal-987787320" target="_blank" class="sl">in</a>
+      <a href="https://github.com/Nishil1302" target="_blank" class="sl">Gh</a>
+    </div>
+  </section>
+
+  <div id="road-nav"><canvas id="road-c"></canvas></div>
+
+  <footer>
+    &copy; 2025 &nbsp;·&nbsp; Nishil Panchal &nbsp;·&nbsp; All rights reserved
+    <br>
+    <a class="footer-pdf" href="#" onclick="downloadResumePDF();return false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15V3m0 12l-4-4m4 4l4-4"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>
+      Download Resume as PDF
+    </a>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── CURSOR ───────────────────────────────────────────────────
+const cur=document.getElementById('cur'),cur2=document.getElementById('cur2');
+let mx=innerWidth/2,my=innerHeight/2,cx=mx,cy=my;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function tc(){cur.style.left=mx+'px';cur.style.top=my+'px';cx+=(mx-cx)*.2;cy+=(my-cy)*.2;cur2.style.left=cx+'px';cur2.style.top=cy+'px';requestAnimationFrame(tc)})();
+
+// ─── LOADER ───────────────────────────────────────────────────
+const pf=document.getElementById('pf'),pp=document.getElementById('pp'),btn=document.getElementById('start-btn');
+let pct=0;
+const li=setInterval(()=>{
+  pct=Math.min(100,pct+Math.random()*3.2+.5);
+  pf.style.width=pct+'%'; pp.textContent=Math.floor(pct)+'%';
+  if(pct>=100){clearInterval(li);setTimeout(()=>btn.classList.add('show'),400)}
+},80);
+
+// ─── CLOUD TRANSITION ────────────────────────────────────────
+const cs=document.getElementById('cloud-stage');
+const cc=cs.getContext('2d');
+function rsCloud(){cs.width=innerWidth;cs.height=innerHeight}
+rsCloud();
+window.addEventListener('resize',rsCloud);
+
+function drawCloud(ctx,cx,cy,w,h,alpha){
+  if(alpha<=0)return;
+  const puffs=[
+    [-.4,.18,.32,.52],[-.20,-.06,.36,.72],[.04,-.12,.40,.78],
+    [.24,-.06,.34,.70],[.43,.14,.30,.52],[-.06,.22,.44,.42],[.19,.24,.38,.40]
+  ];
+  puffs.forEach(([dx,dy,rw,rh])=>{
+    const px=cx+dx*w, py=cy+dy*h, prx=rw*w*1.15, pry=rh*h*1.1;
+    const g=ctx.createRadialGradient(px,py-pry*.08,0,px,py,Math.max(prx,pry)*1.05);
+    g.addColorStop(0,`rgba(255,253,250,${alpha})`);
+    g.addColorStop(.4,`rgba(242,245,252,${alpha*.88})`);
+    g.addColorStop(.75,`rgba(210,215,232,${alpha*.52})`);
+    g.addColorStop(1,`rgba(190,198,224,0)`);
+    ctx.save();
+    ctx.scale(1,pry/prx);
+    ctx.beginPath();
+    ctx.arc(px,py*(prx/pry),prx,0,Math.PI*2);
+    ctx.fillStyle=g;
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function makeClouds(){
+  const W=cs.width,H=cs.height;
+  return[
+    {x:.08,y:.15,w:.32,h:.22,side:-1,spd:1.0},
+    {x:.22,y:.38,w:.28,h:.19,side:-1,spd:.85},
+    {x:.10,y:.60,w:.31,h:.21,side:-1,spd:1.15},
+    {x:.04,y:.78,w:.26,h:.17,side:-1,spd:.9},
+    {x:.38,y:.10,w:.22,h:.17,side:-1,spd:1.0},
+    {x:.34,y:.52,w:.27,h:.19,side:-1,spd:1.1},
+    {x:.92,y:.18,w:.32,h:.22,side:1,spd:1.0},
+    {x:.78,y:.40,w:.28,h:.19,side:1,spd:.88},
+    {x:.88,y:.62,w:.30,h:.21,side:1,spd:1.12},
+    {x:.96,y:.78,w:.25,h:.16,side:1,spd:.92},
+    {x:.62,y:.12,w:.22,h:.17,side:1,spd:1.05},
+    {x:.66,y:.54,w:.27,h:.19,side:1,spd:1.08},
+    {x:.50,y:.28,w:.25,h:.32,side:-1,spd:.72},
+    {x:.50,y:.68,w:.23,h:.27,side:1,spd:.75},
+    {x:.49,y:.50,w:.28,h:.26,side:-1,spd:.68},
+    {x:.51,y:.50,w:.28,h:.26,side:1,spd:.68},
+  ].map(c=>({...c,x:c.x*W,y:c.y*H,w:c.w*W,h:c.h*H}));
+}
+
+function runCloudTransition(done){
+  const clouds=makeClouds();
+  const W=cs.width,H=cs.height;
+  cs.style.display='block';
+  cs.style.pointerEvents='none';
+  let fillT=0;
+  const fillStart=performance.now();
+  function fill(ts){
+    fillT=Math.min(1,(ts-fillStart)/300);
+    const ease=1-Math.pow(1-fillT,3);
+    cc.clearRect(0,0,W,H);
+    clouds.forEach(c=>drawCloud(cc,c.x,c.y,c.w,c.h,ease*.97));
+    if(fillT<1){requestAnimationFrame(fill)}else{split(clouds)}
+  }
+  requestAnimationFrame(fill);
+
+  function split(clouds){
+    const splitStart=performance.now();
+    const DUR=2000;
+    function frame(ts){
+      const t=Math.min(1,(ts-splitStart)/DUR);
+      const easeOut=1-Math.pow(1-t,3);
+      cc.clearRect(0,0,W,H);
+      clouds.forEach(c=>{
+        const travel=easeOut*W*1.5*c.spd;
+        const nx=c.x+c.side*travel;
+        const alpha=t<.65?1:(1-(t-.65)/.35);
+        drawCloud(cc,nx,c.y,c.w,c.h,Math.max(0,alpha));
+      });
+      if(t<1){requestAnimationFrame(frame)}
+      else{cs.style.display='none';if(done)done()}
+    }
+    requestAnimationFrame(frame);
+  }
+}
+
+btn.addEventListener('click',()=>{
+  document.getElementById('loader').classList.add('out');
+  rsCloud();
+  runCloudTransition(()=>{
+    document.getElementById('main').classList.add('vis');
+    initWorld();
+    initRoad();
+    initAbout();
+    initPCanvases();
+    initReveal();
+  });
+});
+
+// ─── THREE.JS WORLD ──────────────────────────────────────────
+function initWorld(){
+  const canvas=document.getElementById('world');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setClearColor(0xf5f0e8,1);
+
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.FogExp2(0xf5f0e8,.0038);
+  const cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,2000);
+  cam.position.z=80;
+
+  const sg=new THREE.BufferGeometry();
+  const sp=new Float32Array(2200*3);
+  for(let i=0;i<2200;i++){sp[i*3]=(Math.random()-.5)*1400;sp[i*3+1]=(Math.random()-.5)*1200;sp[i*3+2]=(Math.random()-.5)*1300}
+  sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xc9a96e,size:.8,transparent:true,opacity:.35})));
+
+  const dg=new THREE.BufferGeometry();
+  const dp=new Float32Array(7000*3);
+  for(let i=0;i<7000;i++){dp[i*3]=(Math.random()-.5)*1800;dp[i*3+1]=(Math.random()-.5)*700;dp[i*3+2]=(Math.random()-.5)*1100}
+  dg.setAttribute('position',new THREE.BufferAttribute(dp,3));
+  scene.add(new THREE.Points(dg,new THREE.PointsMaterial({color:0xb8860b,size:.18,transparent:true,opacity:.22})));
+
+  const tor=new THREE.Mesh(new THREE.TorusGeometry(30,1.1,20,80),
+    new THREE.MeshStandardMaterial({color:0xc9a96e,emissive:0x3a2600,roughness:.35,metalness:.92}));
+  tor.rotation.x=1.2; tor.position.z=-40; scene.add(tor);
+
+  const tor2=new THREE.Mesh(new THREE.TorusGeometry(18,.65,16,60),
+    new THREE.MeshStandardMaterial({color:0x4a80e2,emissive:0x001028,roughness:.28,metalness:.96}));
+  tor2.rotation.set(-.6,.8,0); tor2.position.z=-40; scene.add(tor2);
+
+  const sph=new THREE.Mesh(new THREE.IcosahedronGeometry(22,2),
+    new THREE.MeshStandardMaterial({color:0x9b59b6,wireframe:true,transparent:true,opacity:.18}));
+  sph.position.z=-40; scene.add(sph);
+
+  const orbMat=new THREE.MeshStandardMaterial({color:0xf0d080,emissive:0x6a3c00,roughness:.2,metalness:.9});
+  const orbs=[];
+  for(let i=0;i<14;i++){
+    const orb=new THREE.Mesh(new THREE.SphereGeometry(.7+Math.random()*.8,16,16),orbMat);
+    const a=(i/14)*Math.PI*2;
+    orb.position.set(Math.cos(a)*48,(Math.random()-.5)*22,Math.sin(a)*48-40);
+    scene.add(orb); orbs.push({m:orb,ba:a,r:48});
+  }
+
+  scene.add(new THREE.AmbientLight(0xf5e8c8,2.2));
+  const pl1=new THREE.PointLight(0xc9a96e,2.5,250); pl1.position.set(40,30,30); scene.add(pl1);
+  const pl2=new THREE.PointLight(0xe8c878,1.8,200); pl2.position.set(-50,-15,15); scene.add(pl2);
+  const pl3=new THREE.PointLight(0xd4af37,1.2,180); pl3.position.set(0,50,-25); scene.add(pl3);
+
+  let tz=80,ty=0,t=0;
+  window.addEventListener('scroll',()=>{
+    const ms=document.body.scrollHeight-innerHeight;
+    const s=ms>0?pageYOffset/ms:0;
+    tz=80-s*120; ty=-s*28; cam.rotation.z=s*.04;
+  });
+
+  (function rl(){
+    requestAnimationFrame(rl); t+=.004;
+    cam.position.z+=(tz-cam.position.z)*.04;
+    cam.position.y+=(ty-cam.position.y)*.04;
+    cam.position.x+=(mx/innerWidth*12-6-cam.position.x)*.02;
+    tor.rotation.z+=.003; tor2.rotation.y+=.005; tor2.rotation.z-=.003; sph.rotation.y+=.0018;
+    orbs.forEach((o,i)=>{const a=o.ba+t*.3;o.m.position.x=Math.cos(a)*o.r;o.m.position.z=Math.sin(a)*o.r-40;o.m.position.y=Math.sin(t+i)*6});
+    renderer.render(scene,cam);
+  })();
+
+  window.addEventListener('resize',()=>{
+    cam.aspect=innerWidth/innerHeight; cam.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+}
+
+// ─── ROAD NAV ─────────────────────────────────────────────────
+function initRoad(){
+  const rc=document.getElementById('road-c');
+  const ctx=rc.getContext('2d');
+  function rsz(){rc.width=innerWidth;rc.height=120}
+  rsz(); window.addEventListener('resize',rsz);
+
+  let carX=60,targetX=60,wAngle=0;
+
+  const chapters=[
+    {t:0,   label:'Home'},
+    {t:.17, label:'Welcome'},
+    {t:.33, label:'About'},
+    {t:.50, label:'Projects'},
+    {t:.67, label:'Skills'},
+    {t:.83, label:'Resume'},
+    {t:1.0, label:'Contact'},
+  ];
+
+  function getT(){
+    const ms=document.body.scrollHeight-innerHeight;
+    return ms>0?Math.min(1,pageYOffset/ms):0;
+  }
+
+  function drawRoad(){
+    const W=rc.width,H=rc.height;
+    ctx.clearRect(0,0,W,H);
+
+    const rg=ctx.createLinearGradient(0,32,0,H);
+    rg.addColorStop(0,'#ddd0b0'); rg.addColorStop(.5,'#c8ba95'); rg.addColorStop(1,'#b8a880');
+    ctx.fillStyle=rg;
+    ctx.beginPath(); ctx.moveTo(0,32); ctx.lineTo(W,32); ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.fill();
+
+    ctx.strokeStyle='rgba(150,130,90,.15)'; ctx.lineWidth=1;
+    for(let y=45;y<H;y+=8){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+
+    const hg=ctx.createLinearGradient(0,0,W,0);
+    hg.addColorStop(0,'rgba(139,105,20,0)'); hg.addColorStop(.25,'rgba(139,105,20,.7)');
+    hg.addColorStop(.75,'rgba(139,105,20,.7)'); hg.addColorStop(1,'rgba(139,105,20,0)');
+    ctx.strokeStyle=hg; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,32); ctx.lineTo(W,32); ctx.stroke();
+
+    const dlen=42,gap=28,tot=dlen+gap;
+    const off=(Date.now()*.22)%tot;
+    ctx.strokeStyle='rgba(180,155,80,.55)'; ctx.lineWidth=2.5;
+    ctx.setLineDash([dlen,gap]); ctx.lineDashOffset=-off;
+    ctx.beginPath(); ctx.moveTo(0,68); ctx.lineTo(W,68); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(0,34); ctx.lineTo(W,34); ctx.stroke();
+    ctx.strokeStyle='rgba(139,105,20,.4)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,H-3); ctx.lineTo(W,H-3); ctx.stroke();
+
+    const margin=80, roadW=W-margin*2;
+    const t=getT();
+    chapters.forEach((ch,i)=>{
+      const px=margin+ch.t*roadW;
+      const reached=t>=ch.t-0.02;
+
+      ctx.strokeStyle=reached?'#8b6914':'rgba(139,105,20,.28)';
+      ctx.lineWidth=reached?2:1.2;
+      ctx.beginPath(); ctx.moveTo(px,32); ctx.lineTo(px,68); ctx.stroke();
+
+      ctx.beginPath(); ctx.arc(px,28,reached?6:4.5,0,Math.PI*2);
+      ctx.fillStyle=reached?'#8b6914':'rgba(139,105,20,.3)'; ctx.fill();
+      if(reached){
+        ctx.beginPath(); ctx.arc(px,28,3,0,Math.PI*2);
+        ctx.fillStyle='#faf6ef'; ctx.fill();
+      }
+
+      if(reached||(Math.abs(t-ch.t)<.12)){
+        ctx.font=`${reached?600:400} 10px 'Outfit', sans-serif`;
+        ctx.fillStyle=reached?'#8b6914':'rgba(139,105,20,.5)';
+        ctx.textAlign='center';
+        ctx.fillText(ch.label,px,20);
+      }
+
+      if(i>0){
+        const prev=chapters[i-1];
+        const prevPx=margin+prev.t*roadW;
+        const segT=Math.max(0,Math.min(1,(t-prev.t)/(ch.t-prev.t||.001)));
+        const fillPx=prevPx+segT*(px-prevPx);
+        ctx.strokeStyle='rgba(139,105,20,.45)';
+        ctx.lineWidth=3;
+        ctx.beginPath(); ctx.moveTo(prevPx,50); ctx.lineTo(fillPx,50); ctx.stroke();
+      }
+    });
+  }
+
+  function bmwOnRoad(x,y){
+    const s=.28;
+    ctx.save(); ctx.translate(x,y); ctx.scale(s,s); ctx.translate(-300,-115);
+
+    ctx.save(); ctx.translate(300,200); ctx.scale(1,.2);
+    ctx.beginPath(); ctx.arc(0,0,145,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,.22)'; ctx.fill(); ctx.restore();
+
+    ctx.beginPath();
+    ctx.moveTo(78,158); ctx.lineTo(70,140); ctx.lineTo(95,108); ctx.lineTo(130,88);
+    ctx.lineTo(172,74); ctx.lineTo(202,68); ctx.lineTo(272,66); ctx.lineTo(342,66);
+    ctx.lineTo(392,68); ctx.lineTo(432,79); ctx.lineTo(482,100); ctx.lineTo(512,122);
+    ctx.lineTo(527,142); ctx.lineTo(530,160); ctx.lineTo(524,164); ctx.lineTo(78,164); ctx.closePath();
+    const bg=ctx.createLinearGradient(78,68,530,180);
+    bg.addColorStop(0,'#3a3a52'); bg.addColorStop(.5,'#55557a'); bg.addColorStop(1,'#1e1e30');
+    ctx.fillStyle=bg; ctx.fill();
+    ctx.strokeStyle='rgba(139,105,20,.55)'; ctx.lineWidth=1.4; ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(168,102); ctx.lineTo(184,76); ctx.lineTo(216,60); ctx.lineTo(256,54);
+    ctx.lineTo(312,53); ctx.lineTo(356,55); ctx.lineTo(392,64); ctx.lineTo(418,79);
+    ctx.lineTo(428,102); ctx.closePath(); ctx.fillStyle='#20203a'; ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(185,100); ctx.lineTo(198,72); ctx.lineTo(250,57); ctx.lineTo(312,55);
+    ctx.lineTo(357,57); ctx.lineTo(388,72); ctx.lineTo(402,100); ctx.closePath();
+    const wg=ctx.createLinearGradient(185,100,402,55);
+    wg.addColorStop(0,'rgba(130,180,255,.58)'); wg.addColorStop(1,'rgba(50,90,180,.3)');
+    ctx.fillStyle=wg; ctx.fill(); ctx.strokeStyle='rgba(140,190,255,.38)'; ctx.lineWidth=.9; ctx.stroke();
+
+    function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath()}
+    ctx.fillStyle='#0a0a14'; ctx.strokeStyle='rgba(139,105,20,.9)'; ctx.lineWidth=1.8;
+    rrect(88,115,27,18,8); ctx.fill(); ctx.stroke();
+    rrect(118,115,27,18,8); ctx.fill(); ctx.stroke();
+
+    ctx.beginPath(); ctx.moveTo(76,116); ctx.quadraticCurveTo(87,107,110,106);
+    ctx.lineTo(114,110); ctx.quadraticCurveTo(94,111,85,120); ctx.closePath();
+    ctx.fillStyle='rgba(215,228,255,.95)'; ctx.fill();
+
+    ctx.beginPath(); ctx.moveTo(519,133); ctx.lineTo(526,136); ctx.lineTo(527,153);
+    ctx.lineTo(521,157); ctx.lineTo(515,152); ctx.lineTo(515,140); ctx.closePath();
+    ctx.fillStyle='rgba(255,55,18,.92)'; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(154,162,36,Math.PI,0,false); ctx.fillStyle='#ddd0b0'; ctx.fill();
+    ctx.beginPath(); ctx.arc(450,162,36,Math.PI,0,false); ctx.fillStyle='#ddd0b0'; ctx.fill();
+
+    function wheel(wx,wy){
+      ctx.save(); ctx.translate(wx,wy);
+      ctx.beginPath(); ctx.arc(0,0,31,0,Math.PI*2); ctx.fillStyle='#0c0c18'; ctx.fill();
+      ctx.strokeStyle='rgba(139,105,20,.5)'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0,0,22,0,Math.PI*2);
+      const rg2=ctx.createRadialGradient(-6,-6,0,0,0,22);
+      rg2.addColorStop(0,'#bbb'); rg2.addColorStop(.55,'#888'); rg2.addColorStop(1,'#2a2a2a');
+      ctx.fillStyle=rg2; ctx.fill();
+      ctx.rotate(wAngle);
+      ctx.strokeStyle='#aaa'; ctx.lineWidth=2.5; ctx.lineCap='round';
+      for(let i=0;i<6;i++){const a=i/6*Math.PI*2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*20,Math.sin(a)*20);ctx.stroke()}
+      ctx.rotate(-wAngle);
+      ctx.beginPath(); ctx.arc(0,0,6.5,0,Math.PI*2); ctx.fillStyle='#1c1c1c'; ctx.fill();
+      ctx.strokeStyle='rgba(139,105,20,.75)'; ctx.lineWidth=1.4; ctx.stroke();
+      ctx.restore();
+    }
+    wheel(154,174); wheel(450,174);
+
+    ctx.beginPath(); ctx.arc(190,132,12,0,Math.PI*2); ctx.fillStyle='#0e49b5'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(178,132); ctx.arc(190,132,12,Math.PI,0); ctx.lineTo(178,132); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(190,120); ctx.arc(190,132,12,1.5*Math.PI,.5*Math.PI); ctx.lineTo(190,120); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(190,132,12,0,Math.PI*2); ctx.strokeStyle='rgba(139,105,20,.7)'; ctx.lineWidth=1.2; ctx.stroke();
+
+    ctx.restore();
+
+    const bGrad=ctx.createRadialGradient(x+50,y-5,0,x+60,y-3,100);
+    bGrad.addColorStop(0,'rgba(255,255,210,.18)'); bGrad.addColorStop(1,'rgba(255,255,200,0)');
+    ctx.beginPath(); ctx.ellipse(x+62,y-4,90,22,.12,0,Math.PI*2);
+    ctx.fillStyle=bGrad; ctx.fill();
+  }
+
+  (function loop(){
+    requestAnimationFrame(loop);
+    const t=getT();
+    const margin=80;
+    targetX=margin+t*(rc.width-margin*2);
+    carX+=(targetX-carX)*.06;
+    wAngle+=(targetX-carX)*.04+.055;
+    drawRoad();
+    bmwOnRoad(carX,58);
+  })();
+}
+
+// ─── ABOUT CANVAS ────────────────────────────────────────────
+function initAbout(){
+  const c=document.getElementById('about-c');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  c.width=c.offsetWidth; c.height=c.offsetHeight;
+  const nodes=Array.from({length:42},()=>({
+    x:Math.random()*c.width,y:Math.random()*c.height,
+    vx:(Math.random()-.5)*.55,vy:(Math.random()-.5)*.55,r:Math.random()*2.5+1.2
+  }));
+  (function ra(){
+    requestAnimationFrame(ra);
+    ctx.fillStyle='rgba(245,240,232,.22)'; ctx.fillRect(0,0,c.width,c.height);
+    nodes.forEach(n=>{
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<0||n.x>c.width)n.vx*=-1; if(n.y<0||n.y>c.height)n.vy*=-1;
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(201,169,110,.85)'; ctx.fill();
+    });
+    nodes.forEach((a,i)=>nodes.slice(i+1).forEach(b=>{
+      const dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<125){ctx.beginPath();ctx.strokeStyle=`rgba(201,169,110,${.32*(1-d/125)})`;ctx.lineWidth=.7;ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
+    }));
+  })();
+}
+
+// ─── PROJECT CANVASES ────────────────────────────────────────
+function initPCanvases(){
+  document.querySelectorAll('.pcanv').forEach(c=>{
+    const ctx=c.getContext('2d');
+    c.width=c.offsetWidth; c.height=c.offsetHeight;
+    const t=c.dataset.t; let fr=0;
+
+    if(t==='nebula'){
+      const ps=Array.from({length:130},()=>({
+        x:Math.random()*c.width,y:Math.random()*c.height,
+        vx:(Math.random()-.5)*.38,vy:(Math.random()-.5)*.38,
+        h:Math.random()*60+18,r:Math.random()*2+.5
+      }));
+      (function r(){requestAnimationFrame(r);
+        ctx.fillStyle='rgba(245,240,232,.2)';ctx.fillRect(0,0,c.width,c.height);
+        ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>c.width)p.vx*=-1;if(p.y<0||p.y>c.height)p.vy*=-1;
+          ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`hsla(${p.h},82%,68%,.9)`;ctx.fill();
+          ctx.beginPath();ctx.arc(p.x,p.y,p.r*4.5,0,Math.PI*2);ctx.fillStyle=`hsla(${p.h},82%,68%,.055)`;ctx.fill()})})();
+    }
+    if(t==='orbit'){
+      (function r(){requestAnimationFrame(r);fr++;
+        ctx.fillStyle='rgba(245,240,232,.2)';ctx.fillRect(0,0,c.width,c.height);
+        const cx=c.width/2,cy=c.height/2;
+        [58,88,112].forEach((radius,i)=>{
+          ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
+          ctx.strokeStyle=`rgba(201,169,110,${.1+i*.05})`;ctx.lineWidth=1;ctx.stroke();
+          const a=fr*.014*(i+1)*.75;
+          const dx=Math.cos(a)*radius,dy=Math.sin(a)*radius*.42;
+          ctx.beginPath();ctx.arc(cx+dx,cy+dy,3+i*1.2,0,Math.PI*2);
+          ctx.fillStyle=`rgba(${185+i*28},${142+i*18},${82+i*28},.92)`;ctx.fill();
+          ctx.beginPath();ctx.arc(cx+dx,cy+dy,9+i*2.2,0,Math.PI*2);
+          ctx.fillStyle='rgba(201,169,110,.055)';ctx.fill();
+        });
+        ctx.beginPath();ctx.arc(cx,cy,13,0,Math.PI*2);
+        const sg=ctx.createRadialGradient(cx,cy,0,cx,cy,13);
+        sg.addColorStop(0,'rgba(245,205,75,1)');sg.addColorStop(1,'rgba(200,95,15,.15)');
+        ctx.fillStyle=sg;ctx.fill();
+      })();
+    }
+    if(t==='flow'){
+      const pts=Array.from({length:22},(_,i)=>({x:i/21*c.width,y:c.height/2,vy:0}));
+      (function r(){requestAnimationFrame(r);fr++;
+        ctx.fillStyle='rgba(245,240,232,.22)';ctx.fillRect(0,0,c.width,c.height);
+        pts.forEach((p,i)=>{ p.y=c.height/2+Math.sin(fr*.024+i*.52)*42+Math.cos(fr*.014+i*.3)*21 });
+        for(let l=0;l<3;l++){
+          ctx.beginPath();
+          pts.forEach((p,i)=>{const yy=p.y+l*13-13;if(i===0)ctx.moveTo(p.x,yy);else{const pv=pts[i-1];ctx.bezierCurveTo((pv.x+p.x)/2,pv.y+l*13-13,(pv.x+p.x)/2,yy,p.x,yy)}});
+          ctx.strokeStyle=`rgba(${74+l*48},${144+l*18},${226-l*38},${.72-l*.14})`;ctx.lineWidth=2-l*.28;ctx.stroke();
+        }
+      })();
+    }
+  });
+}
+
+// ─── SCROLL REVEAL ────────────────────────────────────────────
+function initReveal(){
+  const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on')}),{threshold:.18});
+  document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+}
+
+// ─── PDF RESUME DOWNLOAD ──────────────────────────────────────
+function downloadResumePDF(){
+  const name=document.getElementById('res-name')?.innerText||'Nishil Panchal';
+  const role=document.getElementById('res-role')?.innerText||'';
+  const contact=document.getElementById('res-contact')?.innerText||'';
+
+  function g(id){return document.getElementById(id)?.innerText||''}
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;600&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Outfit',sans-serif;background:#fff;color:#1a1208;padding:48px 52px;max-width:800px;margin:0 auto;font-size:13px;line-height:1.6}
+  h1{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;color:#1a1208;margin-bottom:4px}
+  .role{font-size:.9rem;color:#4a3c20;margin-bottom:4px}
+  .contact{font-size:.78rem;color:#8b6914;margin-bottom:28px;line-height:1.7}
+  .section{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #ddd0b0}
+  .section:last-child{border-bottom:none}
+  .sec-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:#8b6914;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .sec-title::before{content:'';display:inline-block;width:22px;height:1.5px;background:#8b6914}
+  .item{margin-bottom:12px}
+  .item-title{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:#1a1208}
+  .item-sub{font-size:.8rem;color:#8b6914;font-weight:600;margin:2px 0}
+  .item-desc{font-size:.82rem;color:#4a3c20;line-height:1.65}
+  .tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .tag{padding:2px 10px;background:rgba(139,105,20,.1);border:1px solid rgba(139,105,20,.25);border-radius:100px;font-size:.75rem;color:#8b6914}
+  hr{border:none;border-top:1.5px solid #8b6914;margin-bottom:18px}
+</style></head><body>
+<h1>${name}</h1>
+<div class="role">${role}</div>
+<div class="contact">📍 Ahmedabad, Gujarat, India &nbsp;·&nbsp; ✉️ nishilpanchal13@gmail.com &nbsp;·&nbsp; 📞 +91 88494 86159<br>🔗 linkedin.com/in/nishil-panchal-987787320 &nbsp;·&nbsp; 💻 github.com/Nishil1302</div>
+<hr>
+<div class="section">
+  <div class="sec-title">Education</div>
+  <div class="item">
+    <div class="item-title">${g('edu1-title')}</div>
+    <div class="item-sub">${g('edu1-college')}</div>
+    <div class="item-desc">${g('edu1-desc')}</div>
+  </div>
+</div>
+<div class="section">
+  <div class="sec-title">Projects</div>
+  <div class="item">
+    <div class="item-title">${g('exp1-title')}</div>
+    <div class="item-sub">${g('exp1-company')}</div>
+    <div class="item-desc">${g('exp1-desc')}</div>
+  </div>
+  <div class="item">
+    <div class="item-title">${g('exp2-title')}</div>
+    <div class="item-sub">${g('exp2-company')}</div>
+    <div class="item-desc">${g('exp2-desc')}</div>
+  </div>
+</div>
+<div class="section">
+  <div class="sec-title">Skills & Technologies</div>
+  <div class="tags">${Array.from(document.querySelectorAll('.res-skill-tag')).map(t=>`<span class="tag">${t.innerText}</span>`).join('')}</div>
+</div>
+<div class="section">
+  <div class="sec-title">Career Objective</div>
+  <div class="item">
+    <div class="item-title">${g('aw1')}</div>
+    <div class="item-desc">${g('aw1d')}</div>
+  </div>
+</div>
+</body></html>`;
+
+  const win=window.open('','_blank','width=850,height=1100');
+  win.document.write(html);
+  win.document.close();
+  win.onload=()=>{
+    setTimeout(()=>{
+      win.print();
+    },600);
+  };
+}
+</script>
+</body>
+</html>
